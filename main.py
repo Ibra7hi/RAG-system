@@ -3,7 +3,7 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain.chat_models import init_chat_model
 from rag.indexing import load_and_index
-from rag.retrivel import get_retrieval_tool
+from rag.retrieval import get_retrieval_tool
 from rag.generator import create_rag_agent
 
 # Initialize Ollama Models
