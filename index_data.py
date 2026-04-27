@@ -1,5 +1,5 @@
 from langchain_ollama import OllamaEmbeddings
-from rag.document_loader import load_pdf_document, load_web_documents
+from rag.document_loader import load_pdf_document
 from rag.db_connection import get_vector_store
 from rag.indexing import split_and_index
 

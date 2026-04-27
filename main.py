@@ -1,6 +1,6 @@
 from langchain_ollama import OllamaEmbeddings
 from langchain_ollama import ChatOllama
-from rag.document_loader import load_web_documents, load_pdf_document
+from rag.document_loader import load_pdf_document
 from rag.db_connection import get_vector_store
 from rag.indexing import split_and_index
 from rag.retrieval import get_retrieval_tool
@@ -14,14 +14,10 @@ def main():
     # 2. Connect to Database
     vector_store = get_vector_store(embedding_function=embeddings)
 
-    # 3. Load Documents (Choose either Web or PDF)
+    # 3. Load Documents from PDF
     print("Loading documents...")
     
-    # Option A: Load from Web
-    # url = "https://lilianweng.github.io/posts/2023-06-23-agent/"
-    # docs = load_web_documents(url)
-    
-    # Option B: Load from PDF (assuming you have a file named 'example.pdf' in root)
+    # Load from PDF
     pdf_path = "fake_company.pdf" 
     docs = load_pdf_document(pdf_path)
 

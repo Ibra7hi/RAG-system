@@ -2,7 +2,6 @@ langchain
 langchain-core
 langchain-community
 langchain-text-splitters
-beautifulsoup4
 chromadb
 pypdf
 langchain-ollama
