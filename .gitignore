@@ -10,15 +10,15 @@ __pycache__/
 env/
 venv/
 ENV/
-env.bak/
-venv.bak/
 
-# Project Data
+# Database Data
 chroma_data/
 *.sqlite3
 
 # OS Files
 .DS_Store
 Thumbs.db
-env/
 
+# Do NOT ignore PDFs (as requested)
+!*.pdf
+!*.txt

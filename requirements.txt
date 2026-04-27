@@ -4,3 +4,10 @@ langchain-community
 langchain-text-splitters
 beautifulsoup4
 chromadb
+pypdf
+langchain-ollama
+langchain-openai
+langgraph
+fastapi
+uvicorn
+pydantic
