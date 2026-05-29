@@ -12,16 +12,15 @@ ambiguous queries, and questions with no answer in the document.
 CATEGORY 1: SIMPLE FACT RETRIEVAL
 (Tests basic chunk retrieval — answer exists in one place)
 ----------------------------------------------------------------
-
-1.  What is the name of NovaTech's CEO?
-2.  In what city is NovaTech's headquarters located?
-3.  What year was NovaTech Solutions founded?
-4.  What is NovaTech's Annual Recurring Revenue (ARR) as of FY2023?
-5.  How many active clients does NovaTech have?
-6.  How many employees does NovaTech have as of Q1 2024?
-7.  What is the support email address for NovaTech customers?
-8.  Who is NovaTech's Chief Product Officer (CPO) and where are they based?
-9.  How many countries does NovaTech serve?
+1. What is the name of NovaTech's CEO?
+2. In what city is NovaTech's headquarters located?
+3. What year was NovaTech Solutions founded?
+4. What is NovaTech's Annual Recurring Revenue (ARR) as of FY2023?
+5. How many active clients does NovaTech have?
+6. How many employees does NovaTech have as of Q1 2024?
+7. What is the support email address for NovaTech customers?
+8. Who is NovaTech's Chief Product Officer (CPO) and where are they based?
+9. How many countries does NovaTech serve?
 10. What is the name of NovaTech's AI chat assistant product?
 11. What is NovaTech's company website?
 12. Who leads the Customer Success department?

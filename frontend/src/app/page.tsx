@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Sparkles } from "lucide-react";
+import { Send, Bot, User, Sparkles, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Message = {
@@ -21,6 +21,38 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Load chat messages from local cache (localStorage) on mount
+  useEffect(() => {
+    const cached = localStorage.getItem("rag_chat_messages");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+        }
+      } catch (e) {
+        console.error("Error loading chat from local cache:", e);
+      }
+    }
+  }, []);
+
+  // Save chat messages to local cache (localStorage) when changed
+  useEffect(() => {
+    localStorage.setItem("rag_chat_messages", JSON.stringify(messages));
+  }, [messages]);
+
+  // Clear chat cache and reset messages
+  const handleClearCache = () => {
+    localStorage.removeItem("rag_chat_messages");
+    setMessages([
+      {
+        id: "welcome",
+        role: "assistant",
+        content: "Hello! I'm your RAG Assistant. Ask me anything about your documents.",
+      },
+    ]);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -45,7 +77,8 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/api/chat", {
+      const apiUrl = "/api/chat";
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: userMessage.content }),
@@ -81,14 +114,24 @@ export default function Home() {
       <div className="flex flex-col w-full max-w-4xl h-[90vh] bg-white rounded-3xl shadow-apple-floating overflow-hidden relative border border-gray-100">
         
         {/* Apple-style Glassmorphism Header */}
-        <header className="absolute top-0 w-full z-10 px-6 py-4 bg-white/70 backdrop-blur-xl border-b border-gray-200/50 flex items-center gap-3">
-          <div className="p-2 bg-blue-500 rounded-xl text-white shadow-sm">
-            <Sparkles size={20} />
+        <header className="absolute top-0 w-full z-10 px-6 py-4 bg-white/70 backdrop-blur-xl border-b border-gray-200/50 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500 rounded-xl text-white shadow-sm">
+              <Sparkles size={20} />
+            </div>
+            <div>
+              <h1 className="font-semibold text-gray-900 leading-tight">RAG Intelligence</h1>
+              <p className="text-xs text-gray-500 font-medium">Powered by Llama 3.1 & Next.js</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-semibold text-gray-900 leading-tight">RAG Intelligence</h1>
-            <p className="text-xs text-gray-500 font-medium">Powered by Llama 3.1 & Next.js</p>
-          </div>
+          
+          <button
+            onClick={handleClearCache}
+            title="Clear Chat Cache"
+            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+          >
+            <Trash2 size={18} />
+          </button>
         </header>
 
         {/* Chat Area */}

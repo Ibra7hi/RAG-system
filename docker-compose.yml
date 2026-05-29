@@ -1,15 +1,16 @@
 version: '3.9'
 
 services:
-  chromadb:
-    image: chromadb/chroma:latest
+  pgvector:
+    image: ankane/pgvector:latest
     ports:
-      - "8000:8000"
-    volumes:
-      - chroma_data:/chroma/chroma
+      - "6024:5432"
     environment:
-      - IS_PERSISTENT=TRUE
-      - PERSIST_DIRECTORY=/chroma/chroma
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=rag_db
+    volumes:
+      - rag_pg_data:/var/lib/postgresql/data
 
 volumes:
-  chroma_data:
+  rag_pg_data:

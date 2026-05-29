@@ -1,8 +1,4 @@
 langchain
-langchain-core
-langchain-community
-langchain-text-splitters
-chromadb
 pypdf
 langchain-ollama
 langchain-openai
@@ -10,3 +6,8 @@ langgraph
 fastapi
 uvicorn
 pydantic
+rank-bm25
+pgvector
+psycopg2-binary
+langgraph-checkpoint-postgres
+psycopg[binary,pool]
