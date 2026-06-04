@@ -5,9 +5,15 @@ Exposes the RAG retrieval pipeline as a discoverable MCP tool.
 Any MCP-compatible client (LangChain agent, Claude Desktop, etc.)
 can connect and use these tools dynamically — no hardcoding needed.
 
-Run:  python mcp_server.py
+This server owns ALL the heavy RAG dependencies:
+  - Embedding model (Ollama)
+  - Vector database connection (PGVector)
+  - Hybrid retriever (BM25 + Semantic)
+
+The orchestrator (app.py) knows NOTHING about any of this.
 """
 
+import sys
 import json
 from typing import Optional
 
@@ -21,16 +27,20 @@ from rag.hybrid_retriever import create_hybrid_retriever
 mcp = FastMCP("RAG-Tools-Server")
 
 # ── Initialize the RAG backend (runs once at startup) ──────────────
-print("🔧 MCP Server: Initializing RAG backend...")
+# NOTE: We print to stderr because stdout is reserved for the MCP
+#       stdio protocol when launched as a subprocess.
+print("🔧 MCP Server: Initializing RAG backend...", file=sys.stderr)
 
 embeddings = OllamaEmbeddings(model="nomic-embed-text-v2-moe")
 vector_store = get_vector_store(embedding_function=embeddings)
 hybrid_retriever = create_hybrid_retriever(vector_store)
 
-print("✅ MCP Server: RAG backend ready.\n")
+print("✅ MCP Server: RAG backend ready.\n", file=sys.stderr)
 
 
 # ── MCP Tools ──────────────────────────────────────────────────────
+# Each @mcp.tool() becomes a capability that the agent discovers
+# automatically. Add more functions here to expand the agent's skills.
 
 @mcp.tool()
 def retrieve_context(query: str, metadata_filter: Optional[str] = None) -> str:
@@ -71,7 +81,6 @@ def retrieve_context(query: str, metadata_filter: Optional[str] = None) -> str:
     return serialized
 
 
-# ── Run the server ─────────────────────────────────────────────────
+# ── Entry point ────────────────────────────────────────────────────
 if __name__ == "__main__":
-    print("🚀 Starting MCP Server on http://0.0.0.0:8081/mcp")
-    mcp.run(transport="streamable-http", host="0.0.0.0", port=8081)
+    mcp.run()
