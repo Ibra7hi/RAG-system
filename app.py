@@ -26,7 +26,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
-from rag.generator import get_checkpointer
+from rag.generator import get_async_checkpointer
 
 
 # ── Load .env ──────────────────────────────────────────────────────
@@ -102,13 +102,11 @@ async def lifespan(app: FastAPI):
     # Step A: Connect to MCP servers and discover tools
     print("\n🔌 Connecting to MCP servers...")
     mcp_client = MultiServerMCPClient(MCP_SERVERS)
-    await mcp_client.__aenter__()
-
-    tools = mcp_client.get_tools()
+    tools = await mcp_client.get_tools()
     print(f"✅ Discovered {len(tools)} tool(s): {[t.name for t in tools]}")
 
     # Step B: Initialize persistent memory (PostgreSQL checkpointer)
-    checkpointer = get_checkpointer()
+    checkpointer = await get_async_checkpointer()
 
     # Step C: Create the ReAct Agent with discovered tools
     agent = create_react_agent(model, tools, prompt=SYSTEM_PROMPT, checkpointer=checkpointer)
@@ -116,10 +114,8 @@ async def lifespan(app: FastAPI):
 
     yield  # ── Application runs here ──
 
-    # Shutdown: close MCP connections
-    print("\n🔌 Disconnecting from MCP servers...")
-    await mcp_client.__aexit__(None, None, None)
-    print("✅ MCP connections closed.")
+    # Shutdown (no-op: new MCP adapter creates ephemeral sessions per tool call)
+    print("✅ Shutting down.")
 
 
 # ── 6. FastAPI App (The HTTP Gateway) ─────────────────────────────
@@ -141,7 +137,8 @@ class ChatRequest(BaseModel):
 @app.post("/api/chat")
 async def chat_endpoint(request: ChatRequest):
     try:
-        config = {"configurable": {"thread_id": "api_user_session"}}
+        # Use a new thread ID to start a clean memory session and avoid the corrupted history
+        config = {"configurable": {"thread_id": "api_user_session_v2"}}
         response = await agent.ainvoke(
             {"messages": [("user", request.query)]}, config=config
         )
@@ -162,7 +159,10 @@ async def chat_endpoint(request: ChatRequest):
         else:
             return {"response": str(response)}
     except Exception as e:
-        return {"error": str(e)}
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        print(f"❌ Chat error: {repr(e)}", file=sys.stderr)
+        return {"error": repr(e)}
 
 
 if __name__ == "__main__":

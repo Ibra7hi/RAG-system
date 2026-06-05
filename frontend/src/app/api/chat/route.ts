@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Disable all caching for this route — chat responses are always dynamic
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -8,6 +12,7 @@ export async function POST(request: NextRequest) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
+      cache: "no-store",
     });
 
     const data = await response.json();

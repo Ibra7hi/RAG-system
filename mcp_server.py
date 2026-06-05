@@ -22,6 +22,7 @@ from langchain_ollama import OllamaEmbeddings
 
 from rag.db_connection import get_vector_store
 from rag.hybrid_retriever import create_hybrid_retriever
+from rag.query_rewriter import create_query_rewriter
 
 # ── Initialize the MCP Server ──────────────────────────────────────
 mcp = FastMCP("RAG-Tools-Server")
@@ -35,6 +36,9 @@ embeddings = OllamaEmbeddings(model="nomic-embed-text-v2-moe")
 vector_store = get_vector_store(embedding_function=embeddings)
 hybrid_retriever = create_hybrid_retriever(vector_store)
 
+# Initialize query rewriter (rewrites user queries → optimized search queries)
+rewrite_query = create_query_rewriter()
+
 print("✅ MCP Server: RAG backend ready.\n", file=sys.stderr)
 
 
@@ -47,6 +51,7 @@ def retrieve_context(query: str, metadata_filter: Optional[str] = None) -> str:
     """Retrieve information from indexed documents to help answer a query.
 
     Uses a hybrid search (BM25 keyword + semantic vector) for best results.
+    The query is automatically rewritten to optimize retrieval quality.
 
     Args:
         query: The search query to find relevant context.
@@ -67,8 +72,11 @@ def retrieve_context(query: str, metadata_filter: Optional[str] = None) -> str:
         except json.JSONDecodeError:
             return f"Error: metadata_filter is not valid JSON: {metadata_filter}"
 
+    # Rewrite the query for better retrieval
+    optimized_query = rewrite_query(query)
+
     # Run the hybrid retriever (BM25 + semantic with RRF fusion)
-    retrieved_docs = hybrid_retriever.invoke(query, metadata_filter=filter_dict)
+    retrieved_docs = hybrid_retriever.invoke(optimized_query, metadata_filter=filter_dict)
 
     if not retrieved_docs:
         return "No matching documents found after filtering."

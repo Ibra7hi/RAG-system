@@ -1,21 +1,21 @@
 from langgraph.prebuilt import create_react_agent
-from langgraph.checkpoint.postgres import PostgresSaver
-from psycopg_pool import ConnectionPool
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import dict_row
 
 # PostgreSQL connection string (same database as pgvector)
 DB_URI = "postgresql://myuser:mypassword@localhost:6024/rag_db"
 
-def get_checkpointer():
+async def get_async_checkpointer():
     """Create a PostgreSQL-backed checkpointer for persistent conversation memory."""
-    pool = ConnectionPool(
+    pool = AsyncConnectionPool(
         conninfo=DB_URI,
         max_size=10,
         kwargs={"autocommit": True, "row_factory": dict_row}
     )
-    checkpointer = PostgresSaver(pool)
+    checkpointer = AsyncPostgresSaver(pool)
     # Creates checkpoint tables if they don't exist yet
-    checkpointer.setup()
+    await checkpointer.setup()
     return checkpointer
 
 def create_rag_agent(model, tools):

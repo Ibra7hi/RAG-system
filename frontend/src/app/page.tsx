@@ -164,7 +164,7 @@ export default function Home() {
                     }`}
                   >
                     {/* Basic text rendering, you'd use react-markdown for rich MD */}
-                    {msg.content.split("\n").map((line, i) => (
+                    {(msg.content ?? "").split("\n").map((line, i) => (
                       <span key={i}>
                         {line}
                         <br />
