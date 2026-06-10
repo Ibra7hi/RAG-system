@@ -1,7 +1,9 @@
 from langchain_core.tools import tool
-
-
 from typing import Optional, Dict, Any
+
+# Reranker imports
+from langchain.retrievers.document_compressors import CrossEncoderReranker
+from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 
 def create_retrieval_tool(retriever):
     """
@@ -11,6 +13,17 @@ def create_retrieval_tool(retriever):
         retriever: Any LangChain retriever (hybrid, semantic-only, etc.)
                    Must support .invoke(query) and return List[Document]
     """
+    print("Loading Reranker Model (BAAI/bge-reranker-base)...")
+    # Initialize the cross-encoder model for re-ranking
+    # bge-reranker-base is a strong open-source re-ranker
+    try:
+        model = HuggingFaceCrossEncoder(model_name="BAAI/bge-reranker-base")
+        # Set top_n to the number of documents you want to keep after reranking
+        compressor = CrossEncoderReranker(model=model, top_n=4)
+        print("Reranker Model loaded successfully.")
+    except ImportError:
+        print("Warning: sentence-transformers not installed. Reranking will be disabled. Run: pip install sentence-transformers")
+        compressor = None
 
     @tool(response_format="content_and_artifact")
     def retrieve_context(query: str, metadata_filter: Optional[Dict[str, Any]] = None):
@@ -27,11 +40,19 @@ def create_retrieval_tool(retriever):
         if not retrieved_docs:
             return "No matching documents found after filtering.", []
 
+        # Apply Re-ranking if the compressor is available
+        if compressor:
+            print(f"Reranking {len(retrieved_docs)} documents...")
+            final_docs = compressor.compress_documents(retrieved_docs, query)
+            print(f"Kept top {len(final_docs)} documents after reranking.")
+        else:
+            final_docs = retrieved_docs
+
         # Serialize results for the agent to read
         serialized = "\n\n".join(
             (f"Source: {doc.metadata}\nContent: {doc.page_content}")
-            for doc in retrieved_docs
+            for doc in final_docs
         )
-        return serialized, retrieved_docs
+        return serialized, final_docs
 
     return retrieve_context
