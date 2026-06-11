@@ -2,8 +2,7 @@ from langchain_core.tools import tool
 from typing import Optional, Dict, Any
 
 # Reranker imports
-from langchain.retrievers.document_compressors import CrossEncoderReranker
-from langchain_community.cross_encoders import HuggingFaceCrossEncoder
+from langchain_community.document_compressors.flashrank_rerank import FlashrankRerank
 
 def create_retrieval_tool(retriever):
     """
@@ -13,16 +12,15 @@ def create_retrieval_tool(retriever):
         retriever: Any LangChain retriever (hybrid, semantic-only, etc.)
                    Must support .invoke(query) and return List[Document]
     """
-    print("Loading Reranker Model (BAAI/bge-reranker-base)...")
+    print("Loading Reranker Model (Flashrank - tiny, lightweight)...")
     # Initialize the cross-encoder model for re-ranking
-    # bge-reranker-base is a strong open-source re-ranker
+    # FlashRank uses highly optimized ONNX models and is ~30MB in size total.
     try:
-        model = HuggingFaceCrossEncoder(model_name="BAAI/bge-reranker-base")
         # Set top_n to the number of documents you want to keep after reranking
-        compressor = CrossEncoderReranker(model=model, top_n=4)
+        compressor = FlashrankRerank(top_n=4)
         print("Reranker Model loaded successfully.")
     except ImportError:
-        print("Warning: sentence-transformers not installed. Reranking will be disabled. Run: pip install sentence-transformers")
+        print("Warning: flashrank not installed. Reranking will be disabled. Run: pip install flashrank")
         compressor = None
 
     @tool(response_format="content_and_artifact")

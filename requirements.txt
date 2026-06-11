@@ -13,4 +13,4 @@ langgraph-checkpoint-postgres
 psycopg[binary,pool]
 mcp[cli]
 langchain-mcp-adapters
-sentence-transformers
+flashrank

@@ -48,6 +48,9 @@ Provides advanced search capabilities by combining two strategies:
 ### 2.4 Query Rewriting (`rag/query_rewriter.py`)
 To optimize retrieval quality, raw user queries are first rewritten using an LLM. This handles vague queries, co-reference resolution (e.g., resolving "it" or "they" to previous entities), and extracts optimized search keywords before the retriever does its job.
 
+### 2.5 Re-ranking Layer (`rag/retrieval.py`)
+After the hybrid retriever pulls a broad set of candidate documents, an ultra-lightweight Cross-Encoder Re-ranker (`Flashrank / TinyBERT`) evaluates each candidate against the query. The re-ranker acts as a highly accurate post-retrieval filter, scoring the documents and keeping only the top `n` matches before passing the context to the LLM.
+
 ---
 
 ## Section 3: Data Flow (Step-by-Step)
@@ -61,10 +64,11 @@ When a user types a message in the Next.js frontend, the following sequence occu
 5.  **Query Rewriting**: Inside the MCP server, the raw query is rewritten by the `query_rewriter` to improve search accuracy.
 6.  **Hybrid Retrieval**: The rewritten query is sent to the `DynamicHybridRetriever`.
     *   *If metadata filters exist*, pre-filtering occurs on both BM25 and PGVector.
-    *   BM25 and Semantic search results are retrieved and fused.
-7.  **Context Return**: The MCP Server formats the retrieved documents as a string and returns them to the Orchestrator.
-8.  **Generation**: The ReAct Agent reads the injected context, decides it has enough information, and generates a final, human-readable response.
-9.  **Response**: FastAPI returns the text to the Next.js frontend to be displayed.
+    *   BM25 and Semantic search results are retrieved and fused to form a candidate pool.
+7.  **Re-ranking**: The candidate pool is passed through an ultra-lightweight Cross-Encoder model (`Flashrank / TinyBERT`). The re-ranker scores the relevance of each document and compresses the list down to the absolute best matches.
+8.  **Context Return**: The MCP Server formats the retrieved, re-ranked documents as a string and returns them to the Orchestrator.
+9.  **Generation**: The ReAct Agent reads the injected context, decides it has enough information, and generates a final, human-readable response.
+10. **Response**: FastAPI returns the text to the Next.js frontend to be displayed.
 
 ---
 
@@ -78,3 +82,4 @@ Please test the student's understanding of this system by asking targeted questi
 3.  **Pre-filtering**: Ask how metadata filtering works in the Hybrid Retriever and why it is done *before* the search (Pre-filtering) rather than after.
 4.  **Query Lifecycle**: Ask them to trace a user's question from the Next.js frontend all the way through the LangGraph Agent, Query Rewriting, and Database, back to the user.
 5.  **State Management**: Ask how the agent remembers previous parts of the conversation.
+6.  **Re-ranking**: Ask why a Cross-Encoder Re-ranker is used *after* the initial hybrid retrieval, and how it improves the context quality given to the LLM.

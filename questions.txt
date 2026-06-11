@@ -36,8 +36,8 @@ CATEGORY 2: PRICING & PRODUCT QUESTIONS
 
 16. How much does the NovaTech Starter plan cost per month?
 17. What is the maximum number of workflow executions allowed on the Professional plan?
-18. Which pricing tiers include an on-premise deployment option?
-19. How much does NovaAssist cost as an add-on on the Professional plan?
+18. Whic19. How much does NovaAssist cost as an add-on on the Professional plan?h pricing tiers include an on-premise deployment option?
+
 20. What uptime SLA does NovaTech guarantee on the Enterprise tier?
 21. How many active workflows can a Starter plan customer run simultaneously?
 22. What is the price of a custom connector developed by NovaTech Professional Services?
