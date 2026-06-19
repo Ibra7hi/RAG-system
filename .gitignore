@@ -19,6 +19,7 @@ chroma_data/
 .DS_Store
 Thumbs.db
 
-# Do NOT ignore PDFs (as requested)
+# Do NOT ignore PDFs, txts, or markdown (as requested)
 !*.pdf
 !*.txt
+!*.md
