@@ -11,7 +11,8 @@ def split_and_index(vector_store, docs, embeddings=None):
         # SemanticChunker uses the embedding model to find changes in topic/meaning
         text_split = SemanticChunker(
             embeddings, 
-            breakpoint_threshold_type="percentile"
+            breakpoint_threshold_type="percentile",
+            breakpoint_threshold_amount=70
         )
     else:
         print("⚠️ Embeddings not found. Falling back to RecursiveCharacterTextSplitter.")
