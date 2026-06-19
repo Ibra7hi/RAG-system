@@ -25,7 +25,7 @@ def main():
 
     # 4. Index the data into the vector store
     print("Splitting and indexing data...")
-    split_and_index(vector_store, docs)
+    split_and_index(vector_store, docs, embeddings=embeddings)
 
     # 5. Build Hybrid Retriever (BM25 + Semantic) and Setup Tool
     hybrid_retriever = create_hybrid_retriever(vector_store)

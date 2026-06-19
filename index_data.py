@@ -18,7 +18,7 @@ def index_my_data():
         return
 
     print("Step 3: Chunk and Index Data")
-    split_and_index(vector_store, docs)
+    split_and_index(vector_store, docs, embeddings=embeddings)
     
     print("\n✅ Indexing Complete.")
 

@@ -20,13 +20,15 @@ The system is a production-ready Retrieval-Augmented Generation (RAG) assistant 
 
 ## Section 2: Core Components
 
-### 2.1 The Orchestrator (`app.py`)
+### 2.1 The Orchestrator (`app.py` & `rag/cache.py`)
 This is a clean-architecture FastAPI backend. It explicitly does **not** know about the database, document chunking, or embeddings.
 *   **Responsibilities**: 
     *   Serves the HTTP API (`/api/chat`).
     *   Connects to the OpenRouter/OpenAI API.
     *   Spawns the MCP server as a managed subprocess (`stdio` transport) and dynamically discovers tools (e.g., `retrieve_context`).
     *   Initializes the LangGraph ReAct agent with persistent conversational memory (checkpointing).
+*   **Self-Reflective RAG**: The agent is programmed via its system prompt to automatically evaluate the retrieved context. If it determines the retrieved chunks are irrelevant or insufficient, it will autonomously rewrite its search query and retry the tool multiple times before giving up.
+*   **Semantic Caching**: Implements an optimization layer using PostgreSQL (`PGVector`). Before routing a user query to the expensive LLM agent, it embeds the query and searches a `semantic_cache` vector collection. If a highly similar query (e.g., >95% similarity) was asked previously, it intercepts the request and instantly returns the cached answer, bypassing the LLM entirely.
 
 ### 2.2 The MCP Server (`mcp_server.py`)
 This script owns the heavy RAG dependencies. It uses `FastMCP` to expose tools to the LangChain agent.
@@ -35,7 +37,10 @@ This script owns the heavy RAG dependencies. It uses `FastMCP` to expose tools t
     *   Exposes the `@mcp.tool()` named `retrieve_context`.
     *   Applies Query Rewriting before passing the search term to the retriever.
 
-### 2.3 The Hybrid Retriever (`rag/hybrid_retriever.py`)
+### 2.3 Indexing & Semantic Chunking (`rag/indexing.py`)
+Instead of blindly splitting text by character count, the system uses an advanced **Semantic Chunker**. It calculates the embedding of each sentence and groups them based on topical similarity (detecting shifts in meaning using a percentile threshold). This ensures that every chunk represents a complete thought or concept, dramatically improving the quality of retrieved context.
+
+### 2.4 The Hybrid Retriever (`rag/hybrid_retriever.py`)
 Provides advanced search capabilities by combining two strategies:
 *   **BM25 (Keyword Search)**: Loads documents into memory from PostgreSQL to build a sparse keyword index. Good for exact term matches.
 *   **Semantic Search (Vector Search)**: Uses PGVector to find conceptually similar chunks.
@@ -45,10 +50,10 @@ Provides advanced search capabilities by combining two strategies:
     *   It uses PostgreSQL's native JSONB querying to filter the vector store natively.
 *   Both results are combined using an `EnsembleRetriever`.
 
-### 2.4 Query Rewriting (`rag/query_rewriter.py`)
+### 2.5 Query Rewriting (`rag/query_rewriter.py`)
 To optimize retrieval quality, raw user queries are first rewritten using an LLM. This handles vague queries, co-reference resolution (e.g., resolving "it" or "they" to previous entities), and extracts optimized search keywords before the retriever does its job.
 
-### 2.5 Re-ranking Layer (`rag/retrieval.py`)
+### 2.6 Re-ranking Layer (`rag/retrieval.py`)
 After the hybrid retriever pulls a broad set of candidate documents, an ultra-lightweight Cross-Encoder Re-ranker (`Flashrank / TinyBERT`) evaluates each candidate against the query. The re-ranker acts as a highly accurate post-retrieval filter, scoring the documents and keeping only the top `n` matches before passing the context to the LLM.
 
 ---
@@ -78,8 +83,9 @@ When a user types a message in the Next.js frontend, the following sequence occu
 
 Please test the student's understanding of this system by asking targeted questions based on the documentation above. Good areas to test include:
 1.  **Architecture**: Ask why the Orchestrator (`app.py`) and the RAG logic (`mcp_server.py`) are strictly separated, and how they communicate.
-2.  **Retrieval Strategy**: Ask them to explain the difference between BM25 and Semantic search, and why a Hybrid approach is used.
-3.  **Pre-filtering**: Ask how metadata filtering works in the Hybrid Retriever and why it is done *before* the search (Pre-filtering) rather than after.
-4.  **Query Lifecycle**: Ask them to trace a user's question from the Next.js frontend all the way through the LangGraph Agent, Query Rewriting, and Database, back to the user.
-5.  **State Management**: Ask how the agent remembers previous parts of the conversation.
-6.  **Re-ranking**: Ask why a Cross-Encoder Re-ranker is used *after* the initial hybrid retrieval, and how it improves the context quality given to the LLM.
+2.  **Semantic Chunking**: Ask them to explain why Semantic Chunking is superior to standard character-based text splitting.
+3.  **Retrieval Strategy**: Ask them to explain the difference between BM25 and Semantic search, and why a Hybrid approach is used.
+4.  **Pre-filtering**: Ask how metadata filtering works in the Hybrid Retriever and why it is done *before* the search (Pre-filtering) rather than after.
+5.  **Query Lifecycle**: Ask them to trace a user's question from the Next.js frontend all the way through the LangGraph Agent, Query Rewriting, and Database, back to the user.
+6.  **State Management**: Ask how the agent remembers previous parts of the conversation.
+7.  **Re-ranking**: Ask why a Cross-Encoder Re-ranker is used *after* the initial hybrid retrieval, and how it improves the context quality given to the LLM.

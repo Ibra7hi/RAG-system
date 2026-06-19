@@ -14,3 +14,4 @@ psycopg[binary,pool]
 mcp[cli]
 langchain-mcp-adapters
 flashrank
+langchain-experimental

@@ -74,6 +74,7 @@ def retrieve_context(query: str, metadata_filter: Optional[str] = None) -> str:
 
     # Rewrite the query for better retrieval
     optimized_query = rewrite_query(query)
+    # optimized_query = query # BYPASSING QUERY REWRITER FOR TESTING
 
     # Run the hybrid retriever (BM25 + semantic with RRF fusion)
     retrieved_docs = hybrid_retriever.invoke(optimized_query, metadata_filter=filter_dict)
