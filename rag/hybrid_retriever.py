@@ -4,7 +4,7 @@ from langchain_core.documents import Document
 
 
 class DynamicHybridRetriever:
-    def __init__(self, vector_store, k=20, bm25_weight=0.4, semantic_weight=0.6):
+    def __init__(self, vector_store, k=5, bm25_weight=0.4, semantic_weight=0.6):
         self.vector_store = vector_store
         self.k = k
         self.bm25_weight = bm25_weight

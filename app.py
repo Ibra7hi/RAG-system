@@ -150,7 +150,7 @@ async def chat_endpoint(request: ChatRequest):
 
         # 2. ⏳ Cache Miss: Run the LLM Agent
         # Use a new thread ID to start a clean memory session and avoid the corrupted history
-        config = {"configurable": {"thread_id": "api_user_session_v2"}}
+        config = {"configurable": {"thread_id": "api_user_session_v4"}}
         response = await agent.ainvoke(
             {"messages": [("user", request.query)]}, config=config
         )

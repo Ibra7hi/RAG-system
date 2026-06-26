@@ -9,7 +9,7 @@ def index_my_data():
     vector_store = get_vector_store(embedding_function=embeddings)
 
     print("Step 2: Load Target Documents")
-    pdf_path = "math.pdf" 
+    pdf_path = "hima.pdf" 
     try:
         docs = load_pdf_document(pdf_path)
         print(f"   -> Successfully loaded {len(docs)} pages.")

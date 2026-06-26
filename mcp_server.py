@@ -47,7 +47,7 @@ print("✅ MCP Server: RAG backend ready.\n", file=sys.stderr)
 # automatically. Add more functions here to expand the agent's skills.
 
 @mcp.tool()
-def retrieve_context(query: str, metadata_filter: Optional[str] = None) -> str:
+def retrieve_context(query: str, metadata_filter: Optional[dict] = None) -> str:
     """Retrieve information from indexed documents to help answer a query.
 
     Uses a hybrid search (BM25 keyword + semantic vector) for best results.
@@ -55,8 +55,8 @@ def retrieve_context(query: str, metadata_filter: Optional[str] = None) -> str:
 
     Args:
         query: The search query to find relevant context.
-        metadata_filter: Optional JSON string of metadata to filter by,
-            e.g. '{"company": "FakeCorp", "doc_type": "handbook"}'.
+        metadata_filter: Optional dictionary of metadata to filter by,
+            e.g. {"company": "FakeCorp", "doc_type": "handbook"}.
             Use this when the user asks about a specific company,
             document, or category.
 
@@ -64,13 +64,7 @@ def retrieve_context(query: str, metadata_filter: Optional[str] = None) -> str:
         A formatted string of the most relevant document chunks,
         or a message saying no matches were found.
     """
-    # Parse the optional metadata filter from JSON string
-    filter_dict = None
-    if metadata_filter:
-        try:
-            filter_dict = json.loads(metadata_filter)
-        except json.JSONDecodeError:
-            return f"Error: metadata_filter is not valid JSON: {metadata_filter}"
+    filter_dict = metadata_filter
 
     # Rewrite the query for better retrieval
     optimized_query = rewrite_query(query)
